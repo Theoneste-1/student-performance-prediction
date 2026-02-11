@@ -1,0 +1,17 @@
+.github
+.idea
+*.log
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.egg-info/
+dist/
+build/
+*.egg
+*.pyo
+
+
+**.pkl
+config.bat
+node_modules
