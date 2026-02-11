@@ -1,0 +1,358 @@
+{% load static %} {% load custom_filters %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Student Performance AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="{% static 'performance/css/style.css' %}" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --purple: #7c5fa6;
+        --blue: #4a7ab8;
+        --border: #e5e7eb;
+        --bg-soft: #f9fafb;
+        --primary: #1C5B64;
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: radial-gradient(circle at top, #0f172a, #020617);
+        color: #111827;
+      }
+
+      .container {
+        max-width: 1100px;
+        padding: 1rem;
+        margin: auto;
+      }
+
+      .card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: clamp(1rem, 4vw, 2rem);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      header h1 {
+        font-size: clamp(1.6rem, 4vw, 2.3rem);
+        margin-bottom: 0.4rem;
+      }
+
+      header p {
+        opacity: 0.7;
+        font-size: 0.95rem;
+      }
+
+      /* ---------- FORM ---------- */
+      .form-group {
+        margin-bottom: 1.2rem;
+      }
+
+      label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: block;
+        margin-bottom: 0.4rem;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 0.7rem 0.8rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        font-size: 0.95rem;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.9rem;
+      }
+
+      .btn-submit {
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0.8rem;
+        font-size: 1rem;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, #368182, #0D886B);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      /* ---------- RESULTS ---------- */
+      .results-wrapper {
+        max-width: 900px;
+        margin: 2.5rem auto 0;
+      }
+
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.25rem;
+      }
+
+      .result-card {
+        border-radius: 14px;
+        padding: 1.4rem;
+        background: var(--bg-soft);
+        border-left: 5px solid;
+      }
+
+      .result-card h3 {
+        font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+        opacity: 0.85;
+      }
+
+      .result-card .value {
+        font-size: clamp(1.4rem, 4vw, 2.2rem);
+        font-weight: 800;
+      }
+
+      .category {
+        border-color: var(--purple);
+        background: linear-gradient(135deg, #f9f5fe, #f3ebf8);
+      }
+
+      .performance {
+        border-color: var(--blue);
+        background: linear-gradient(135deg, #f0f6fc, #e8f1f8);
+      }
+
+      .confidence-bar {
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        margin-top: 0.7rem;
+        overflow: hidden;
+      }
+
+      .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #247E62, #43C5C3);
+      }
+
+      /* ---------- SUMMARY ---------- */
+      .details-summary {
+        margin-top: 1.5rem;
+        padding: 1.3rem;
+        border-radius: 12px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+      }
+
+      .details-summary h4 {
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.45rem 0;
+        font-size: 0.9rem;
+      }
+
+      .detail-row strong {
+        font-weight: 600;
+      }
+      .input-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      @media (max-width: 480px) {
+        .detail-row {
+          flex-direction: column;
+          gap: 0.2rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="card">
+        <header>
+          <h1> Student Performance AI</h1>
+          <p>Predict academic performance & behavior intelligently</p>
+        </header>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="input-grid">
+          <div class="form-group">
+            <label>Hours Studied Per Day</label>
+            <input
+              type="number"
+              name="hours_studied"
+              step="0.5"
+              required
+              value="{{ last_data.hours_studied|default:'' }}"
+            />
+          </div>
+
+          <div class="form-group">
+            <label> Previous Scores</label>
+            <input
+              type="number"
+              name="previous_scores"
+              step="0.5"
+              required
+              value="{{ last_data.previous_scores|default:'' }}"
+            />
+          </div>
+        </div>
+
+        <div class="input-grid">
+          <div class="form-group">
+            <label> Sleep Hours</label>
+            <input
+              type="number"
+              name="sleep_hours"
+              step="0.5"
+              required
+              value="{{ last_data.sleep_hours|default:'' }}"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Sample Papers</label>
+            <input
+              type="number"
+              name="sample_papers"
+              required
+              value="{{ last_data.sample_papers|default:'' }}"
+            />
+          </div>
+
+        </div>
+
+          <div class="form-group checkbox-group">
+            <input
+              type="checkbox"
+              name="extracurricular"
+              {% if  last_data.extracurricular %}checked{% endif %}
+            />
+            <span>Participates in extracurricular activities</span>
+          </div>
+
+          <button class="btn-submit">Predict Performance</button>
+        </form>
+
+        {% if prediction_result and prediction_result.success %}
+        <div class="results-wrapper">
+          <div class="results-grid">
+            <div class="result-card category">
+              <h3>Student Category</h3>
+              <div class="value">{{ prediction_result.student_category }}</div>
+              <div class="confidence-bar">
+                <div
+                  class="confidence-fill"
+                  style="width: {{ prediction_result.confidence|mul:100 }}%"
+                ></div>
+              </div>
+              <small
+                >Confidence: {{ prediction_result.confidence|mul:100|floatformat:0 }}%</small
+              >
+            </div>
+
+            <div class="result-card performance">
+              <h3>Performance Index</h3>
+              <div class="value">
+                {{ prediction_result.performance_index }}/100
+              </div>
+              <div class="confidence-bar">
+                <div
+                  class="confidence-fill"
+                  style="width: {{ prediction_result.performance_index }}%"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="details-summary">
+            <h4> Analysis Summary </h4>
+
+            <div class="detail-row">
+              <span>Total Daily Hours</span>
+              <strong
+                >{{ prediction_result.details.total_daily_hours }} hrs</strong
+              >
+            </div>
+
+            <div class="detail-row">
+              <span>Study + Sleep</span>
+              <strong>
+                {{ prediction_result.details.input_summary.hours_studied }}
+                study / {{ prediction_result.details.input_summary.sleep_hours }} sleep
+              </strong>
+            </div>
+
+            <div class="detail-row">
+              <span>Previous Score</span>
+              <strong
+                >{{ prediction_result.details.input_summary.previous_scores }}/100</strong
+              >
+            </div>
+
+            <div class="detail-row">
+              <span>Extracurricular</span>
+              <strong
+                >{% if prediction_result.details.input_summary.extracurricular   %}Yes{% else %}No{% endif %}</strong
+              >
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+
+        {% if prediction_result and not prediction_result.success %}
+<div class="error-wrapper">
+  <div class="error-card">
+    <div class="error-icon">⚠️</div>
+
+    <div class="error-content">
+      <h3>Invalid Schedule</h3>
+      <p>{{ prediction_result.error }}</p>
+
+      {% if prediction_result.details.total_daily_hours %}
+      <div class="error-meta">
+        Total Daily Hours:
+        <strong>{{ prediction_result.details.total_daily_hours }} hours</strong>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+      </div>
+    </div>
+  </body>
+</html>
